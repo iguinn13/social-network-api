@@ -6,6 +6,7 @@ import ClassBinder from './binders/class';
 import ModelBinder from './binders/model';
 import ServerBinder from './binders/server';
 import ControllerBinder from './binders/controller';
+import MiddlewareBinder from './binders/middlewares';
 
 const container = new Container();
 
@@ -15,6 +16,7 @@ function loadBinders(): Promise<unknown> {
 		ClassBinder.load(container),
 		ModelBinder.load(container),
 		ServerBinder.load(container),
+		MiddlewareBinder.load(container),
 	];
 
 	return Promise.all(binders);

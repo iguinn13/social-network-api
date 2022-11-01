@@ -3,4 +3,5 @@ export enum Binder {
 	CONTROLLER = 'Controller',
 	SERVER = 'Server',
 	MODEL = 'Model',
+	MIDDLEWARE = 'Middleware',
 }
