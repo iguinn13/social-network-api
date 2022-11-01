@@ -23,6 +23,21 @@ export class UserController {
 		}
 	}
 
+	@httpPost('/authenticate')
+	public async authenticate(request: Request, response: Response): Promise<Response> {
+		try {
+			const { email, password } = request.body;
+
+			const token = await this.userService.login({ email, password });
+
+			return response.status(StatusCode.OK).json({ token });
+		} catch (error: any) {
+			return response
+				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
+				.json({ error: error.message });
+		}
+	}
+
 	@httpGet('/')
 	public async getAll(request: Request, response: Response): Promise<Response> {
 		try {

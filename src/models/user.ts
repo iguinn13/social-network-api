@@ -1,5 +1,5 @@
-import bcrypt from 'bcrypt';
 import { getModelForClass, pre, prop } from '@typegoose/typegoose';
+import { encryptPassword } from '../helpers/bcrypt';
 
 export interface IUserAddres {
 	state: string;
@@ -8,7 +8,7 @@ export interface IUserAddres {
 }
 
 @pre<User>('save', function () {
-	this.password = bcrypt.hashSync(this.password, 10);
+	this.password = encryptPassword(this.password);
 })
 export class User {
 	@prop({ required: true })
