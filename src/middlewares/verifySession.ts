@@ -17,8 +17,7 @@ export class VerifySessionMiddleware extends BaseMiddleware {
 		try {
 			const { token, user_id } = request.headers;
 
-			if (!token || !user_id)
-				throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário não autenticado');
+			if (!token || !user_id) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário não autenticado');
 
 			const providedUser = verifyToken(token as string);
 

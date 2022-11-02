@@ -7,6 +7,7 @@ class ControllerBinder extends _Binder {
 		return new Promise((resolve, reject) => {
 			try {
 				require('../../controllers/user');
+				require('../../controllers/post');
 
 				resolve(true);
 			} catch (error: any) {

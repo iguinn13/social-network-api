@@ -3,6 +3,7 @@ import { Container } from 'inversify';
 import { _Binder } from '.';
 
 import { Binder } from '../../constants/binders';
+import { PostModel } from '../../models/post';
 import { UserModel } from '../../models/user';
 import { BinderError } from '../../shared/errors/binderError';
 
@@ -11,6 +12,7 @@ class ModelBinder extends _Binder {
 		return new Promise((resolve, reject) => {
 			try {
 				container.bind(UserModel).toConstantValue(UserModel);
+				container.bind(PostModel).toConstantValue(PostModel);
 
 				return resolve(true);
 			} catch (error: any) {

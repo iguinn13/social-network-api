@@ -17,8 +17,7 @@ export class UserService {
 
 		const userAlreadyExists = await this.getByEmail(email);
 
-		if (userAlreadyExists)
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário já cadastrado');
+		if (userAlreadyExists) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário já cadastrado');
 
 		const user: Payload = {
 			username,
@@ -46,8 +45,7 @@ export class UserService {
 	}
 
 	public async follow({ userToFollowId, userId }: Payload): Promise<void> {
-		if (!userToFollowId)
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
+		if (!userToFollowId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
 
 		if (await this.verifyIfFollows(userToFollowId, userId)) {
 			throw new ResponseError(StatusCode.BAD_REQUEST, 'Você já segue esse usuário');
@@ -60,8 +58,7 @@ export class UserService {
 	}
 
 	public async unfollow({ userToUnfollowId, userId }: Payload): Promise<void> {
-		if (!userToUnfollowId)
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
+		if (!userToUnfollowId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
 
 		if (!(await this.verifyIfFollows(userToUnfollowId, userId))) {
 			throw new ResponseError(
@@ -71,13 +68,18 @@ export class UserService {
 		}
 
 		if (userToUnfollowId === userId) {
-			throw new ResponseError(
-				StatusCode.BAD_REQUEST,
-				'Não é possível parar de seguir você mesmo'
-			);
+			throw new ResponseError(StatusCode.BAD_REQUEST, 'Não é possível parar de seguir você mesmo');
 		}
 
 		await this.userRepository.removeFollower(userToUnfollowId, userId);
+	}
+
+	public async getUser(userId: string): Promise<User> {
+		const user = await this.userRepository.findById(userId);
+
+		if (!user) throw new ResponseError(StatusCode.BAD_REQUEST, '');
+
+		return user;
 	}
 
 	private async verifyIfFollows(targetId: string, userId: string): Promise<boolean> {

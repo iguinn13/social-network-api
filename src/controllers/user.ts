@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { inject } from 'inversify';
-import { controller, httpGet, httpPatch, httpPost, httpPut } from 'inversify-express-utils';
+import { controller, httpGet, httpPatch, httpPost } from 'inversify-express-utils';
 import { StatusCode } from '../constants/statusCode';
 import { VerifySessionMiddleware } from '../middlewares/verifySession';
 import { UserService } from '../services/user';
@@ -45,6 +45,21 @@ export class UserController {
 			const users = await this.userService.listAll();
 
 			return response.status(StatusCode.OK).json({ users });
+		} catch (error: any) {
+			return response
+				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
+				.json({ error: error.message });
+		}
+	}
+
+	@httpGet('/:userId')
+	public async getById(request: Request, response: Response): Promise<Response> {
+		try {
+			const { userId } = request.params;
+
+			const user = await this.userService.getUser(userId);
+
+			return response.status(StatusCode.OK).json({ user });
 		} catch (error: any) {
 			return response
 				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
