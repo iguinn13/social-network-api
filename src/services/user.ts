@@ -1,11 +1,14 @@
 import { inject, injectable } from 'inversify';
-import { StatusCode } from '../constants/statusCode';
-import { comparePassword } from '../helpers/bcrypt';
-import { generateToken } from '../helpers/token';
+
 import { User } from '../models/user';
+import { StatusCode } from '../constants/statusCode';
 import { UserRepository } from '../repositories/user';
-import { ResponseError } from '../shared/errors/responseError';
+
+import { generateToken } from '../helpers/token';
+import { comparePassword } from '../helpers/bcrypt';
+
 import { Payload } from '../shared/types/payload';
+import { ResponseError } from '../shared/errors/responseError';
 
 @injectable()
 export class UserService {

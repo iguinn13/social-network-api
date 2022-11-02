@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
 import { inject } from 'inversify';
+import { Request, Response } from 'express';
 import { controller, httpGet, httpPatch, httpPost } from 'inversify-express-utils';
+
+import { UserService } from '../services/user';
 import { StatusCode } from '../constants/statusCode';
 import { VerifySessionMiddleware } from '../middlewares/verifySession';
-import { UserService } from '../services/user';
 
 @controller('/users')
 export class UserController {
@@ -39,20 +40,7 @@ export class UserController {
 		}
 	}
 
-	@httpGet('/')
-	public async getAll(request: Request, response: Response): Promise<Response> {
-		try {
-			const users = await this.userService.listAll();
-
-			return response.status(StatusCode.OK).json({ users });
-		} catch (error: any) {
-			return response
-				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
-				.json({ error: error.message });
-		}
-	}
-
-	@httpGet('/:userId')
+	@httpGet('/:userId', VerifySessionMiddleware)
 	public async getById(request: Request, response: Response): Promise<Response> {
 		try {
 			const { userId } = request.params;

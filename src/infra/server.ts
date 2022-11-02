@@ -24,8 +24,6 @@ export class Server {
 
 	public listen(): void {
 		const serverInstance = this.inversifyExpressServer.build();
-		serverInstance.listen(this.port, () =>
-			console.log(`Server is running at port ${this.port}...`)
-		);
+		serverInstance.listen(this.port, () => console.log(`Server is running at port ${this.port}...`));
 	}
 }
