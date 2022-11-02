@@ -10,4 +10,8 @@ export class PostRepository {
 	public async create({ author, media, text }: Payload): Promise<void> {
 		await this.postModel.create({ author, media, text });
 	}
+
+	public async deleteOne(postId: string): Promise<void> {
+		await this.postModel.deleteOne({ _id: postId });
+	}
 }

@@ -21,4 +21,8 @@ export class PostService {
 
 		await this.postRepository.create({ ...post });
 	}
+
+	public async delete({ postId }: Payload): Promise<void> {
+		await this.postRepository.deleteOne(postId);
+	}
 }
