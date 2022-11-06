@@ -2,12 +2,13 @@ import { Container } from 'inversify';
 
 import { _Binder } from '.';
 import { Binder } from '../../constants/binders';
-import { PostRepository } from '../../repositories/post';
-import { UserRepository } from '../../repositories/user';
+import { BinderError } from '../../shared/errors/binderError';
+
 import { PostService } from '../../services/post';
 import { UserService } from '../../services/user';
 
-import { BinderError } from '../../shared/errors/binderError';
+import { PostRepository } from '../../repositories/post';
+import { UserRepository } from '../../repositories/user';
 
 class ClassBinder extends _Binder {
 	public load(container: Container): Promise<boolean> {
@@ -19,7 +20,7 @@ class ClassBinder extends _Binder {
 				container.bind(PostRepository).to(PostRepository).inSingletonScope();
 				container.bind(UserRepository).to(UserRepository).inSingletonScope();
 
-				return resolve(true);
+				return Promise.resolve();
 			} catch (error: any) {
 				return reject(new BinderError(Binder.CLASS, error.message));
 			}

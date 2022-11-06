@@ -1,13 +1,15 @@
+import path from 'path';
+
 import { _Binder } from '.';
 import { Binder } from '../../constants/binders';
+import { loadModules } from '../../helpers/loadModules';
 import { BinderError } from '../../shared/errors/binderError';
 
 class ControllerBinder extends _Binder {
 	public load(): Promise<boolean> {
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 			try {
-				require('../../controllers/user');
-				require('../../controllers/post');
+				await loadModules(path.resolve('./dist/controllers'));
 
 				resolve(true);
 			} catch (error: any) {

@@ -1,11 +1,11 @@
 import { Container } from 'inversify';
 
 import { _Binder } from '.';
-
 import { Binder } from '../../constants/binders';
+import { BinderError } from '../../shared/errors/binderError';
+
 import { PostModel } from '../../models/post';
 import { UserModel } from '../../models/user';
-import { BinderError } from '../../shared/errors/binderError';
 
 class ModelBinder extends _Binder {
 	public load(container: Container): Promise<boolean> {
@@ -14,7 +14,7 @@ class ModelBinder extends _Binder {
 				container.bind(UserModel).toConstantValue(UserModel);
 				container.bind(PostModel).toConstantValue(PostModel);
 
-				return resolve(true);
+				return Promise.resolve();
 			} catch (error: any) {
 				return reject(new BinderError(Binder.MODEL, error.message));
 			}

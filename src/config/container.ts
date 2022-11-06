@@ -3,14 +3,14 @@ import 'reflect-metadata';
 import { Container } from 'inversify';
 
 import ClassBinder from './binders/class';
-import ModelBinder from './binders/model';
+import ModelBinder from './binders/models';
 import ServerBinder from './binders/server';
-import ControllerBinder from './binders/controller';
+import ControllerBinder from './binders/controllers';
 import MiddlewareBinder from './binders/middlewares';
 
 const container = new Container();
 
-function loadBinders(): Promise<unknown> {
+function loadBinders(): Promise<boolean[]> {
 	const binders = [
 		ControllerBinder.load(),
 		ClassBinder.load(container),

@@ -11,7 +11,7 @@ class MiddlewareBinder extends _Binder {
 			try {
 				container.bind(VerifySessionMiddleware).to(VerifySessionMiddleware);
 
-				return resolve(true);
+				return Promise.resolve();
 			} catch (error: any) {
 				return reject(new BinderError(Binder.MIDDLEWARE, error.message));
 			}
