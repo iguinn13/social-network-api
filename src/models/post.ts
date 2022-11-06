@@ -23,7 +23,11 @@ export class Post {
 	public comments!: string[];
 
 	@prop({ required: false })
-	public likes!: string[];
+	public likes!: Array<{
+		userId: string;
+		username: string;
+		profilePhoto: string;
+	}>;
 
 	@prop({ required: false })
 	public media!: string;

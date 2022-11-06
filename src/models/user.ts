@@ -1,11 +1,17 @@
-import { getModelForClass, pre, prop } from '@typegoose/typegoose';
 import mongoose from 'mongoose';
 import { encryptPassword } from '../helpers/bcrypt';
+import { getModelForClass, pre, prop } from '@typegoose/typegoose';
 
 export interface IUserAddres {
 	state: string;
 	city: string;
 	country: string;
+}
+
+export interface IFollowerUser {
+	userId: string;
+	profilePhoto: string;
+	username: string;
 }
 
 @pre<User>('save', function () {
@@ -31,10 +37,10 @@ export class User {
 	public address!: IUserAddres;
 
 	@prop({ required: false })
-	public followers!: string[];
+	public followers!: Array<IFollowerUser>;
 
 	@prop({ required: false })
-	public following!: string[];
+	public following!: Array<IFollowerUser>;
 }
 
 export const UserModel = getModelForClass(User);
