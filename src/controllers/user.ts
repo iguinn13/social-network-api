@@ -12,78 +12,48 @@ export class UserController {
 
 	@httpPost('/')
 	public async create(request: Request, response: Response): Promise<Response> {
-		try {
-			const { username, email, password, address } = request.body;
+		const { username, email, password, address } = request.body;
 
-			await this.userService.register({ username, email, password, address });
+		await this.userService.register({ username, email, password, address });
 
-			return response.status(StatusCode.CREATED).send();
-		} catch (error: any) {
-			return response
-				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
-				.json({ error: error.message });
-		}
+		return response.status(StatusCode.CREATED).send();
 	}
 
 	@httpPost('/authenticate')
 	public async authenticate(request: Request, response: Response): Promise<Response> {
-		try {
-			const { email, password } = request.body;
+		const { email, password } = request.body;
 
-			const token = await this.userService.login({ email, password });
+		const token = await this.userService.login({ email, password });
 
-			return response.status(StatusCode.OK).json({ token });
-		} catch (error: any) {
-			return response
-				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
-				.json({ error: error.message });
-		}
+		return response.status(StatusCode.OK).json({ token });
 	}
 
 	@httpGet('/:userId', VerifySessionMiddleware)
 	public async getById(request: Request, response: Response): Promise<Response> {
-		try {
-			const { userId } = request.params;
+		const { userId } = request.params;
 
-			const user = await this.userService.getUser(userId);
+		const user = await this.userService.getUser(userId);
 
-			return response.status(StatusCode.OK).json({ user });
-		} catch (error: any) {
-			return response
-				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
-				.json({ error: error.message });
-		}
+		return response.status(StatusCode.OK).json({ user });
 	}
 
 	@httpPatch('/follow/:userId', VerifySessionMiddleware)
 	public async follow(request: Request, response: Response): Promise<Response> {
-		try {
-			const { user_id: userId } = request.headers;
-			const { userId: userToFollowId } = request.params;
+		const { user_id: userId } = request.headers;
+		const { userId: userToFollowId } = request.params;
 
-			await this.userService.follow({ userId, userToFollowId });
+		await this.userService.follow({ userId, userToFollowId });
 
-			return response.status(StatusCode.OK).send();
-		} catch (error: any) {
-			return response
-				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
-				.json({ error: error.message });
-		}
+		return response.status(StatusCode.OK).send();
 	}
 
 	@httpPatch('/unfollow/:userId', VerifySessionMiddleware)
 	public async unfollow(request: Request, response: Response): Promise<Response> {
-		try {
-			const { user_id: userId } = request.headers;
-			const { userId: userToUnfollowId } = request.params;
+		const { user_id: userId } = request.headers;
+		const { userId: userToUnfollowId } = request.params;
 
-			await this.userService.unfollow({ userId, userToUnfollowId });
+		await this.userService.unfollow({ userId, userToUnfollowId });
 
-			return response.status(StatusCode.OK).send();
-		} catch (error: any) {
-			return response
-				.status(error.status ? error.status : StatusCode.INTERNAL_ERROR)
-				.json({ error: error.message });
-		}
+		return response.status(StatusCode.OK).send();
 	}
 }
