@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export function connectDatabase(): Promise<unknown> {
+export function connectDatabase(): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		mongoose.connect(
 			`mongodb://${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/${process.env.DATABASE_NAME}`

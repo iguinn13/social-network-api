@@ -1,10 +1,11 @@
+import { ParsedQs } from 'qs';
+import { BaseMiddleware } from 'inversify-express-utils';
 import { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { BaseMiddleware } from 'inversify-express-utils';
-import { ParsedQs } from 'qs';
+
+import { verifyToken } from '../helpers/token';
 import { container } from '../config/container';
 import { StatusCode } from '../constants/statusCode';
-import { verifyToken } from '../helpers/token';
 import { UserRepository } from '../repositories/user';
 import { ResponseError } from '../shared/errors/responseError';
 
@@ -17,17 +18,17 @@ export class VerifySessionMiddleware extends BaseMiddleware {
 		try {
 			const { token, user_id } = request.headers;
 
-			if (!token || !user_id) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário não autenticado');
+			if (!token || !user_id) throw new ResponseError(StatusCode.FORBIDDEN, '');
 
 			const providedUser = verifyToken(token as string);
 
-			if (!providedUser) throw new ResponseError(StatusCode.BAD_REQUEST, 'Sessão inválida');
+			if (!providedUser) throw new ResponseError(StatusCode.UNAUTHORIZED, '');
 
 			const user = await container
 				.get(UserRepository)
 				.findByEmail((providedUser as { [key: string]: any }).email);
 
-			if (!user) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário não encontrado');
+			if (!user) throw new ResponseError(StatusCode.FORBIDDEN, '');
 
 			return next();
 		} catch (error: any) {
