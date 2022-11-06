@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
 
-import { User } from '../models/user';
+import { IHandleableUser, User } from '../models/user';
 import { StatusCode } from '../constants/statusCode';
 import { UserRepository } from '../repositories/user';
 
@@ -18,7 +18,7 @@ export class UserService {
 		if (!username || !email || !password || !address)
 			throw new ResponseError(StatusCode.BAD_REQUEST, 'Todos os dados devem ser preenchidos');
 
-		const userAlreadyExists = await this.getByEmail(email);
+		const userAlreadyExists = await this.userRepository.findByEmail(email);
 
 		if (userAlreadyExists) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário já cadastrado');
 
@@ -36,7 +36,7 @@ export class UserService {
 		if (!email || !password)
 			throw new ResponseError(StatusCode.BAD_REQUEST, 'Todos os dados devem ser preenchidos');
 
-		const user = await this.getByEmail(email);
+		const user = await this.userRepository.findByEmail(email);
 
 		if (!user) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário não cadastrado');
 		if (!comparePassword(password, user.password))
@@ -47,57 +47,71 @@ export class UserService {
 		return token;
 	}
 
-	public async follow({ userToFollowId, userId }: Payload): Promise<void> {
-		if (!userToFollowId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
+	public async follow({ targetId, userId }: Payload): Promise<void> {
+		if (!targetId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
 
-		if (await this.verifyIfFollows(userToFollowId, userId)) {
+		if (targetId === userId) {
+			throw new ResponseError(StatusCode.BAD_REQUEST, 'Não é possível seguir você mesmo');
+		}
+
+		if (await this.verifyIfFollows(userId, targetId)) {
 			throw new ResponseError(StatusCode.BAD_REQUEST, 'Você já segue esse usuário');
 		}
 
-		if (userToFollowId === userId)
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Não é possível seguir você mesmo');
+		const user = await this.userRepository.findById(userId);
+		const target = await this.userRepository.findById(targetId);
 
-		await this.userRepository.addFollower(userToFollowId, userId);
+		if (!target) {
+			throw new ResponseError(StatusCode.BAD_REQUEST, 'Alvo não encontrado');
+		}
+
+		const follower: IHandleableUser = {
+			userId: user._id.toString(),
+			profilePhoto: user.profilePhoto,
+			username: user.username,
+		};
+
+		const following: IHandleableUser = {
+			userId: target._id.toString(),
+			profilePhoto: target.profilePhoto,
+			username: target.username,
+		};
+
+		await this.userRepository.addFollower({ ...follower }, targetId);
+		await this.userRepository.addFollowing({ ...following }, userId);
 	}
 
-	public async unfollow({ userToUnfollowId, userId }: Payload): Promise<void> {
-		if (!userToUnfollowId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
+	public async unfollow({ userId, targetId }: Payload): Promise<void> {
+		if (!targetId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
 
-		if (!(await this.verifyIfFollows(userToUnfollowId, userId))) {
+		if (!(await this.verifyIfFollows(userId, targetId))) {
 			throw new ResponseError(
 				StatusCode.BAD_REQUEST,
 				'Não é possível parar de seguir um usuário que você não segue'
 			);
 		}
 
-		if (userToUnfollowId === userId) {
+		if (targetId === userId) {
 			throw new ResponseError(StatusCode.BAD_REQUEST, 'Não é possível parar de seguir você mesmo');
 		}
 
-		await this.userRepository.removeFollower(userToUnfollowId, userId);
+		await this.userRepository.removeFollower(targetId, userId);
+		await this.userRepository.removeFollowing(userId, targetId);
 	}
 
 	public async getUser(userId: string): Promise<User> {
-		const user = await this.userRepository.findById(userId);
-
-		if (!user) throw new ResponseError(StatusCode.BAD_REQUEST, '');
-
-		return user;
-	}
-
-	private async verifyIfFollows(targetId: string, userId: string): Promise<boolean> {
-		const target = await this.userRepository.findById(targetId);
-
-		if (!target) throw new ResponseError(StatusCode.BAD_REQUEST, '');
-
-		return (target.followers || []).some((follower) => follower.toString() === userId);
-	}
-
-	private async getByEmail(email: string): Promise<User> {
-		return this.userRepository.findByEmail(email);
+		return this.userRepository.findById(userId);
 	}
 
 	public async listAll(): Promise<User[]> {
 		return this.userRepository.findAll();
+	}
+
+	private async verifyIfFollows(userId: string, targetId: string): Promise<boolean> {
+		const user = await this.userRepository.findById(userId);
+
+		if (!user) return false;
+
+		return user.following.some((user) => user.userId === targetId);
 	}
 }

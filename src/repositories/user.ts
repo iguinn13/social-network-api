@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify';
+
 import { User, UserModel } from '../models/user';
 import { Payload } from '../shared/types/payload';
 
@@ -22,11 +23,33 @@ export class UserRepository {
 		return this.userModel.find({}, { __v: 0 }).lean();
 	}
 
-	public async addFollower(followerId: string, userId: string): Promise<void> {
-		await this.userModel.updateOne({ _id: followerId }, { $push: { followers: userId } });
+	public async addFollower(follower: Payload, userId: string): Promise<void> {
+		await this.userModel.updateOne(
+			{ _id: userId },
+			{
+				$push: {
+					followers: { ...follower },
+				},
+			}
+		);
+	}
+
+	public async addFollowing(following: Payload, userId: string): Promise<void> {
+		await this.userModel.updateOne(
+			{ _id: userId },
+			{
+				$push: {
+					following: { ...following },
+				},
+			}
+		);
 	}
 
 	public async removeFollower(targetId: string, userId: string): Promise<void> {
-		await this.userModel.updateOne({ _id: targetId }, { $pull: { followers: userId } });
+		await this.userModel.updateOne({ _id: targetId }, { $pull: { followers: { userId } } });
+	}
+
+	public async removeFollowing(userId: string, targetId: string): Promise<void> {
+		await this.userModel.updateOne({ _id: userId }, { $pull: { following: { userId: targetId } } });
 	}
 }

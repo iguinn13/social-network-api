@@ -3,8 +3,8 @@ import { inject, injectable } from 'inversify';
 import { StatusCode } from '../constants/statusCode';
 import { PostRepository } from '../repositories/post';
 
-import { ResponseError } from '../shared/errors/responseError';
 import { Payload } from '../shared/types/payload';
+import { ResponseError } from '../shared/errors/responseError';
 
 @injectable()
 export class PostService {

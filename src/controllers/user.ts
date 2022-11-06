@@ -37,22 +37,22 @@ export class UserController {
 		return response.status(StatusCode.OK).json({ user });
 	}
 
-	@httpPatch('/follow/:userId', VerifySessionMiddleware)
+	@httpPatch('/follow/:targetId', VerifySessionMiddleware)
 	public async follow(request: Request, response: Response): Promise<Response> {
+		const { targetId } = request.params;
 		const { user_id: userId } = request.headers;
-		const { userId: userToFollowId } = request.params;
 
-		await this.userService.follow({ userId, userToFollowId });
+		await this.userService.follow({ targetId, userId });
 
 		return response.status(StatusCode.OK).send();
 	}
 
-	@httpPatch('/unfollow/:userId', VerifySessionMiddleware)
+	@httpPatch('/unfollow/:targetId', VerifySessionMiddleware)
 	public async unfollow(request: Request, response: Response): Promise<Response> {
+		const { targetId } = request.params;
 		const { user_id: userId } = request.headers;
-		const { userId: userToUnfollowId } = request.params;
 
-		await this.userService.unfollow({ userId, userToUnfollowId });
+		await this.userService.unfollow({ userId, targetId });
 
 		return response.status(StatusCode.OK).send();
 	}
