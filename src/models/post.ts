@@ -1,13 +1,23 @@
 import mongoose from 'mongoose';
 import { getModelForClass, pre, prop } from '@typegoose/typegoose';
 
+import { IHandleableUser } from './user';
+
+export interface IComment {
+	author: IHandleableUser;
+	text: string;
+	media: string;
+	likes: Array<IHandleableUser>;
+	createdAt: Date;
+}
+
 @pre<Post>('save', function () {
 	this._id = new mongoose.Types.ObjectId();
-	this.comments = [];
-	this.createdAt = new Date();
 	this.likes = [];
+	this.comments = [];
 	this.text = '';
 	this.media = '';
+	this.createdAt = new Date();
 })
 export class Post {
 	@prop({ required: false })
@@ -20,14 +30,10 @@ export class Post {
 	public createdAt!: Date;
 
 	@prop({ required: false })
-	public comments!: string[];
+	public comments!: Array<IComment>;
 
 	@prop({ required: false })
-	public likes!: Array<{
-		userId: string;
-		username: string;
-		profilePhoto: string;
-	}>;
+	public likes!: Array<IHandleableUser>;
 
 	@prop({ required: false })
 	public media!: string;

@@ -27,4 +27,14 @@ export class PostController {
 
 		return response.status(StatusCode.OK).send();
 	}
+
+	@httpPost('/:postId', VerifySessionMiddleware)
+	public async addComment(request: Request, response: Response): Promise<Response> {
+		const { postId } = request.params;
+		const { author, text, media } = request.body;
+
+		await this.postService.toComment({ postId, author, text, media });
+
+		return response.status(StatusCode.CREATED).send();
+	}
 }
