@@ -11,24 +11,24 @@ import MiddlewareBinder from './binders/middlewares';
 const container = new Container();
 
 function loadBinders(): Promise<boolean[]> {
-	const binders = [
-		ControllerBinder.load(),
-		ClassBinder.load(container),
-		ModelBinder.load(container),
-		ServerBinder.load(container),
-		MiddlewareBinder.load(container),
-	];
+    const binders = [
+        ControllerBinder.load(),
+        ClassBinder.load(container),
+        ModelBinder.load(container),
+        ServerBinder.load(container),
+        MiddlewareBinder.load(container),
+    ];
 
-	return Promise.all(binders);
+    return Promise.all(binders);
 }
 
 (async (): Promise<void> => {
-	try {
-		await loadBinders();
-	} catch (error: any) {
-		console.error(`Error on binder ${error.binder}: `, error.message);
-		process.exit(1);
-	}
+    try {
+        await loadBinders();
+    } catch (error: any) {
+        console.error(`Error on binder ${error.binder}: `, error.message);
+        process.exit(1);
+    }
 })();
 
 export { container };

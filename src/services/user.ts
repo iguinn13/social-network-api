@@ -12,106 +12,128 @@ import { ResponseError } from '../shared/errors/responseError';
 
 @injectable()
 export class UserService {
-	public constructor(@inject(UserRepository) private readonly userRepository: UserRepository) {}
+    public constructor(@inject(UserRepository) private readonly userRepository: UserRepository) {}
 
-	public async register({ username, email, password, address }: Payload): Promise<void> {
-		if (!username || !email || !password || !address)
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Todos os dados devem ser preenchidos');
+    public async register({ username, email, password, address }: Payload): Promise<void> {
+        if (!username || !email || !password || !address)
+            throw new ResponseError(StatusCode.BAD_REQUEST, 'Todos os dados devem ser preenchidos');
 
-		const userAlreadyExists = await this.userRepository.findByEmail(email);
+        const userAlreadyExists = await this.userRepository.findByEmail(email);
 
-		if (userAlreadyExists) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário já cadastrado');
+        if (userAlreadyExists) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário já cadastrado');
 
-		const user: Payload = {
-			username,
-			email,
-			password,
-			address,
-		};
+        const user: Payload = {
+            username,
+            email,
+            password,
+            address,
+        };
 
-		await this.userRepository.create(user);
-	}
+        await this.userRepository.create(user);
+    }
 
-	public async login({ email, password }: Payload): Promise<string> {
-		if (!email || !password)
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Todos os dados devem ser preenchidos');
+    public async addUserToBlacklist({ userId, targetId }: Payload): Promise<void> {
+        if (!targetId) throw new ResponseError(StatusCode.BAD_REQUEST, '');
 
-		const user = await this.userRepository.findByEmail(email);
+        await this.userRepository.removeFollower(targetId, userId);
+        await this.userRepository.removeFollowing(userId, targetId);
+        await this.userRepository.addOneToBlacklist(userId, targetId);
+    }
 
-		if (!user) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário não cadastrado');
-		if (!comparePassword(password, user.password))
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Senha incorreta');
+    public async removeUserFromBlacklist({ userId, targetId }: Payload): Promise<void> {
+        if (!targetId) throw new ResponseError(StatusCode.BAD_REQUEST, '');
 
-		const token = generateToken({ ...user });
+        await this.userRepository.deleteOneFromBlacklist(userId, targetId);
+    }
 
-		return token;
-	}
+    public async login({ email, password }: Payload): Promise<string> {
+        if (!email || !password)
+            throw new ResponseError(StatusCode.BAD_REQUEST, 'Todos os dados devem ser preenchidos');
 
-	public async follow({ targetId, userId }: Payload): Promise<void> {
-		if (!targetId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
+        const user = await this.userRepository.findByEmail(email);
 
-		if (targetId === userId) {
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Não é possível seguir você mesmo');
-		}
+        if (!user) throw new ResponseError(StatusCode.BAD_REQUEST, 'Usuário não cadastrado');
+        if (!comparePassword(password, user.password))
+            throw new ResponseError(StatusCode.BAD_REQUEST, 'Senha incorreta');
 
-		if (await this.verifyIfFollows(userId, targetId)) {
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Você já segue esse usuário');
-		}
+        const token = generateToken({ ...user });
 
-		const user = await this.userRepository.findById(userId);
-		const target = await this.userRepository.findById(targetId);
+        return token;
+    }
 
-		if (!target) {
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Alvo não encontrado');
-		}
+    public async updateProfileInfo({ userId, username, profilePhoto, bio, address }: Payload): Promise<void> {
+        await this.userRepository.updateInfo({ userId, username, profilePhoto, bio, address });
+    }
 
-		const follower: IHandleableUser = {
-			userId: user._id.toString(),
-			profilePhoto: user.profilePhoto,
-			username: user.username,
-		};
+    public async follow({ targetId, userId }: Payload): Promise<void> {
+        if (!targetId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
 
-		const following: IHandleableUser = {
-			userId: target._id.toString(),
-			profilePhoto: target.profilePhoto,
-			username: target.username,
-		};
+        if (targetId === userId) {
+            throw new ResponseError(StatusCode.BAD_REQUEST, 'Não é possível seguir você mesmo');
+        }
 
-		await this.userRepository.addFollower({ ...follower }, targetId);
-		await this.userRepository.addFollowing({ ...following }, userId);
-	}
+        if (await this.verifyIfFollows(userId, targetId)) {
+            throw new ResponseError(StatusCode.BAD_REQUEST, 'Você já segue esse usuário');
+        }
 
-	public async unfollow({ userId, targetId }: Payload): Promise<void> {
-		if (!targetId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
+        const user = await this.userRepository.findById(userId);
+        const target = await this.userRepository.findById(targetId);
 
-		if (!(await this.verifyIfFollows(userId, targetId))) {
-			throw new ResponseError(
-				StatusCode.BAD_REQUEST,
-				'Não é possível parar de seguir um usuário que você não segue'
-			);
-		}
+        if (!target) {
+            throw new ResponseError(StatusCode.BAD_REQUEST, 'Alvo não encontrado');
+        }
 
-		if (targetId === userId) {
-			throw new ResponseError(StatusCode.BAD_REQUEST, 'Não é possível parar de seguir você mesmo');
-		}
+        const follower: IHandleableUser = {
+            userId: user._id.toString(),
+            profilePhoto: user.profilePhoto,
+            username: user.username,
+        };
 
-		await this.userRepository.removeFollower(targetId, userId);
-		await this.userRepository.removeFollowing(userId, targetId);
-	}
+        const following: IHandleableUser = {
+            userId: target._id.toString(),
+            profilePhoto: target.profilePhoto,
+            username: target.username,
+        };
 
-	public async getUser(userId: string): Promise<User> {
-		return this.userRepository.findById(userId);
-	}
+        await this.userRepository.addFollower({ ...follower }, targetId);
+        await this.userRepository.addFollowing({ ...following }, userId);
+    }
 
-	public async listAll(): Promise<User[]> {
-		return this.userRepository.findAll();
-	}
+    public async desactivateAccount({ userId }: Payload): Promise<void> {
+        await this.userRepository.deleteOne(userId);
+    }
 
-	private async verifyIfFollows(userId: string, targetId: string): Promise<boolean> {
-		const user = await this.userRepository.findById(userId);
+    public async unfollow({ userId, targetId }: Payload): Promise<void> {
+        if (!targetId) throw new ResponseError(StatusCode.BAD_REQUEST, 'É necessário um alvo');
 
-		if (!user) return false;
+        if (!(await this.verifyIfFollows(userId, targetId))) {
+            throw new ResponseError(
+                StatusCode.BAD_REQUEST,
+                'Não é possível parar de seguir um usuário que você não segue'
+            );
+        }
 
-		return user.following.some((user) => user.userId === targetId);
-	}
+        if (targetId === userId) {
+            throw new ResponseError(StatusCode.BAD_REQUEST, 'Não é possível parar de seguir você mesmo');
+        }
+
+        await this.userRepository.removeFollower(targetId, userId);
+        await this.userRepository.removeFollowing(userId, targetId);
+    }
+
+    public async getUser(userId: string): Promise<User> {
+        return this.userRepository.findById(userId);
+    }
+
+    public async listAll(): Promise<User[]> {
+        return this.userRepository.findAll();
+    }
+
+    private async verifyIfFollows(userId: string, targetId: string): Promise<boolean> {
+        const user = await this.userRepository.findById(userId);
+
+        if (!user) return false;
+
+        return user.following.some((user) => user.userId === targetId);
+    }
 }
